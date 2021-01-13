@@ -37,11 +37,11 @@ São muitas possibilidades e você só precisa de alguns segundos para cadastrar
 
 ## ⚙️ Funcionalidades
 
-- [x] Criar um lembrete
+- [x] Criar um lembrete por usuário
 - [x] Consultar lembretes criados
 - [x] Teclado de botões personalizados para seleção de opções
 - [x] Captar os comandos e executar as ações
-- [ ] Criar vários lembretes
+- [ ] Criar vários lembretes para um usuário
 - [ ] Armazenar em banco de dados
 
 ---
