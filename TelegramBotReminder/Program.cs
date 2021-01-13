@@ -13,8 +13,8 @@ namespace TelegramBotReminder
         private static DateTime lastMessageTime;
         static void Main(string[] args)
         {
-            IConfiguration configuration = new ConfigurationBuilder().AddJsonFile($@"{AppDomain.CurrentDomain.BaseDirectory}appsettings.json",  true, true).Build();
-            var token = configuration["telegramBotToken"];
+            IConfiguration configuration = new ConfigurationBuilder().AddJsonFile($@"{AppDomain.CurrentDomain.BaseDirectory}appsettings.json", true, true).Build();
+            var token = configuration["TelegramBotToken"];
             bot = new TelegramBotFunctions(token);
             SetTimer();
             Console.ReadLine();

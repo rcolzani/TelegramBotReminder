@@ -45,11 +45,11 @@ namespace TelegramBotReminder
         {
             long chatId = e.Message.Chat.Id;
             Functions.LogEvent($"Mensagem recebida {e.Message.Text} - do chat {chatId}");
-            addClientToList(chatId);
+            bool isNewCliente = addClientToList(chatId);
             var clientChat = chatClients.FirstOrDefault(c => c.ChatId == chatId);
 
             string mensagem = Functions.RemoveAccents(e.Message.Text.ToLower());
-            
+
 
             if (mensagem == "ola" || mensagem == "/start")
             {
@@ -76,8 +76,16 @@ namespace TelegramBotReminder
                         }
                     }
                 };
-                
-                string texto = $"Olá {e.Message.From.FirstName}, {Environment.NewLine}{Environment.NewLine}Selecione uma das opções no teclado que apareceu para você ou digite:{Environment.NewLine}" +
+
+                string texto = $"Olá {e.Message.From.FirstName}, {Environment.NewLine}{Environment.NewLine}";
+
+                if (isNewCliente)
+                {
+                    texto += $"Vejo que é sua primeira vez aqui. Seja muito bem vindo!!!{Environment.NewLine}Sou um robô criado para lembrar você do que for preciso. Basta você criar um lembrete que eu" +
+                        $" aviso você para tomar água, se medicar, tirar o lixo... Você só precisar seguir as instruções abaixo e não esquecerei de você hehe{Environment.NewLine}{Environment.NewLine}";
+                }
+
+                texto += $"Selecione uma das opções no teclado que apareceu para você ou digite:{Environment.NewLine}" +
                     $"*Iniciar* - para começar a cadastrar um lembrete{Environment.NewLine}" +
                     $"*Consultar* - para consultar os lembretes ativos{Environment.NewLine}" +
                     $"*Parar* - para não receber mais{Environment.NewLine}" +
@@ -98,20 +106,43 @@ namespace TelegramBotReminder
 
                 foreach (var chat in chatClients)
                 {
-                    if (chat.ChatId == chatId)
+                    if (chat.ChatId == chatId && chat.TextMessage != "")
                     {
-                        if (lembretes != "")
+                        if (lembretes != "") { }
                             lembretes += Environment.NewLine;
                         lembretes += $"Lembrete {chat.TextMessage} às {chat.TimeToSend}";
                     }
                 }
-                await sendMessage(e.Message.Chat.Id, lembretes);
+                
+                if (lembretes == "")
+                {
+                    var keyboard  = new ReplyKeyboardMarkup
+                    {
+                        Keyboard = new[]
+                      {
+                        new[]
+                        {
+                            new KeyboardButton("Iniciar")
+                        },
+                        new[]
+                        {
+                            new KeyboardButton("Sair")
+                        }
+                    }
+                    };
+                    lembretes = "Você ainda não tem lembretes cadastrados. Que tal iniciar o cadastro de um novo lembrete?";
+                    await sendMessage(e.Message.Chat.Id, lembretes, keyboard);
+                }
+                else
+                {
+                    await sendMessage(e.Message.Chat.Id, lembretes);
+                }
             }
             else if (mensagem == "parar")
             {
                 clientChat.Activated = false;
+                clientChat.TextMessage = "";
                 await sendMessage(e.Message.Chat.Id, "Removido da fila de envio.");
-                chatClients.Remove(chatClients.FirstOrDefault(c => c.ChatId == chatId));
             }
             else if (mensagem == "sair")
             {
@@ -158,7 +189,7 @@ namespace TelegramBotReminder
 
             if (idExist == null)
             {
-                chatClients.Add(new chatClient { ChatId = chatId, TextMessage = "", TimeToSend = new TimeSpan(08, 00, 00) });
+                chatClients.Add(new chatClient { ChatId = chatId, TextMessage = "", TimeToSend = new TimeSpan(08, 00, 00), MessageHistory = new List<Message>() });
                 return true;
             }
 
@@ -178,7 +209,7 @@ namespace TelegramBotReminder
                 }
                 // var responseString = client.GetStringAsync($"https://api.telegram.org/bot{_token}/sendMessage?chat_id={chatClient.ChatId}&text={chatClient.TextMessage}");
                 //Functions.LogEvent(responseString.Result.ToString());
-                var messageSent = await bot.SendTextMessageAsync(chatId, text,Telegram.Bot.Types.Enums.ParseMode.Markdown, false,false, 0, replyMarkup);
+                var messageSent = await bot.SendTextMessageAsync(chatId, text, Telegram.Bot.Types.Enums.ParseMode.Markdown, false, false, 0, replyMarkup);
 
                 if (chatClients.FirstOrDefault(c => c.ChatId == chatId).MessageHistory == null)
                 {
