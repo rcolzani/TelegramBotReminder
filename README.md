@@ -23,7 +23,7 @@ Tabela de conteúdos
 ## 💻 Sobre o projeto
 
 ⏰ Desenvolvido através de um bot no Telegram para lembrar você de coisas do dia a dia. Comece enviando '/start' ou 'Olá' e o bot responderá com os comandos disponíveis. Para cadastrar um novo lembrete é bem fácil: 
-1. Crie um token e executa a aplicação
+1. Crie um token e execute a aplicação
 2. Envie 'Olá' para o bot criado
 3. O bot responderá com algumas instruções e mudará o teclado do celular para as opções disponíveis
 4. Crie uma descrição para o seu lembrete
