@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Timers;
 using Telegram.Bot;
 using Telegram.Bot.Args;
@@ -7,33 +8,37 @@ namespace TelegramBotReminder
 {
     class Program
     {
-        public static TelegramBotFunctions bot = new TelegramBotFunctions("youapikey");
+        public static TelegramBotFunctions bot;
         private static Timer _timer;
         private static DateTime lastMessageTime;
         static void Main(string[] args)
         {
-            Functions.chatsIds = new System.Collections.Generic.List<long>();
+            IConfiguration configuration = new ConfigurationBuilder().AddJsonFile($@"{AppDomain.CurrentDomain.BaseDirectory}appsettings.json",  true, true).Build();
+            var token = configuration["telegramBotToken"];
+            bot = new TelegramBotFunctions(token);
             SetTimer();
             Console.ReadLine();
             Functions.LogEvent("Finalizando aplicação");
+            bot.stopReceiving();
         }
         private static void SetTimer()
         {
-            _timer = new System.Timers.Timer(10000);
+            _timer = new System.Timers.Timer(60000);
             _timer.Elapsed += OnTimedEvent;
             _timer.AutoReset = true;
             _timer.Enabled = true;
+            bot.sendMessagesIfNeeded();
         }
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
-            if (lastMessageTime <= DateTime.UtcNow.AddHours(-2))
+            if (lastMessageTime <= DateTime.Now)
             {
-                bot.sendMessage("Beba água");
-                lastMessageTime = DateTime.UtcNow;
+                bot.sendMessagesIfNeeded();
+                lastMessageTime = DateTime.Now;
             }
 
         }
-    
-      
+
+
     }
 }
