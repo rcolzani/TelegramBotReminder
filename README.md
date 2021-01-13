@@ -58,6 +58,7 @@ São muitas possibilidades e você só precisa de alguns segundos para cadastrar
 ## 🛠 Tecnologias
 
 - .NET Core 3.1
+- <a href="https://core.telegram.org/bots/api">Telegram Bot API</a>
 - <a href="https://github.com/TelegramBots/Telegram.Bot">.NET Client for Telegram Bot API</a> 
 
 ---
