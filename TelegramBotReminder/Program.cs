@@ -9,6 +9,7 @@ using System.Timers;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using TelegramBotReminder.Data;
+using TelegramBotReminder.Model;
 
 namespace TelegramBotReminder
 {
@@ -22,6 +23,12 @@ namespace TelegramBotReminder
             Functions.LogEvent("Aplicação iniciada");
             var token = Functions.ConfigurationRead("TelegramBotToken");
             bot = new TelegramBotFunctions(token);
+
+            // var botContext = new BotContext();
+            // Cliente cliente = botContext.getClient(1114855651);
+            // cliente.TextMessage = "Funcionou o teste";
+            // botContext.updateClient(cliente);
+
             SetTimer();
             Console.ReadLine();
             Functions.LogEvent("Finalizando aplicação");

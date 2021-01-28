@@ -19,7 +19,6 @@ namespace TelegramBotReminder
     public class TelegramBotFunctions
     {
         private static BotContext _context = new BotContext();
-        public static List<chatClient> xchatClients = new List<chatClient>();
         private string _token;
         private static TelegramBotClient bot;
         private static string lastRiverLevel;
@@ -42,7 +41,6 @@ namespace TelegramBotReminder
         public async static void PrepareQuestionnaires(MessageEventArgs e)
         {
             long chatId = e.Message.Chat.Id;
-
             string jsonString = JsonSerializer.Serialize(e);
             Functions.LogEvent($"MessageEvent: {jsonString}");
             Functions.LogEvent($"Mensagem recebida {e.Message.Text} - do chat {chatId}");
@@ -110,7 +108,7 @@ namespace TelegramBotReminder
             {
                 string lembretes = "";
 
-                foreach (var chat in _context.GetClientes())
+                foreach (var chat in _context.Conversas.ToList())
                 {
                     if (chat.ClientId == chatId && chat.TextMessage != "")
                     {
@@ -224,35 +222,22 @@ namespace TelegramBotReminder
         {
             try
             {
-                string siteContent = string.Empty;
-                string url = "http://alertablu.cob.sc.gov.br/d/nivel-do-rio";
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
-                request.AutomaticDecompression = DecompressionMethods.GZip;
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())  // Go query google
-                using (Stream responseStream = response.GetResponseStream())               // Load the response stream
-                using (StreamReader streamReader = new StreamReader(responseStream))       // Load the stream reader to read the response
-                {
-                    siteContent = streamReader.ReadToEnd(); // Read the entire response and store it in the siteContent variable
-                }
-                var document = new HtmlDocument();
-                document.LoadHtml(siteContent);
-                var nodes = document.DocumentNode.SelectNodes("//*[@id='river-level-table']/tbody/tr/td");
-                var hora = nodes[0].InnerText.Trim();
-                var nivelRio = nodes[1].InnerText.Trim();
                 bool enviarNivel = false;
-
-                if (String.IsNullOrEmpty(lastRiverLevel) == false && lastRiverLevel != hora + nivelRio)
+                string riverLevelHour = "", riverLevel = "";
+                RiverLevel(out riverLevel, out riverLevelHour);
+                //if (String.IsNullOrEmpty(lastRiverLevel) == false && lastRiverLevel != riverLevel + riverLevelHour)
+                if (lastRiverLevel != riverLevel + riverLevelHour)
                 {
                     enviarNivel = true;
                 }
-                lastRiverLevel = hora + nivelRio;
+                lastRiverLevel = riverLevel + riverLevelHour;
 
-                foreach (var client in _context.GetClientes())
+                foreach (var client in _context.Conversas.ToList())
                 {
                     //enviar nível do rio
                     if (enviarNivel && client.RiverLevel)
                     {
-                        await sendMessage(client.ClientId, $"O nível do rio está {nivelRio} às {hora}");
+                        await sendMessage(client.ClientId, $"O nível do rio está {riverLevel} às {riverLevelHour}");
                     }
                     //enviar lembretes criados
                     if (client.TextMessage != "" && client.Status == (int)clientStatus.complete) //apenas clientes com o cadastro de um lembrete completo
@@ -274,38 +259,39 @@ namespace TelegramBotReminder
                     }
 
                 }
-                //if (text == null)
-                //{
-                //    return false;
-                //}
-                //// var responseString = client.GetStringAsync($"https://api.telegram.org/bot{_token}/sendMessage?chat_id={chatClient.ChatId}&text={chatClient.TextMessage}");
-                ////Functions.LogEvent(responseString.Result.ToString());
-                //bot.SendTextMessageAsync(chatId, text);
-                //chatClients.FirstOrDefault(c => c.ChatId == chatId).MessageHistory.Add(new Message { dateTimeMessage = DateTime.UtcNow, MessageText = text });
-                //return true;
             }
             catch (Exception e)
             {
                 Functions.LogException(e);
             }
         }
+        private void RiverLevel(out string riverLevel, out string riverLevelHour)
+        {
+            riverLevel = "";
+            riverLevelHour = "";
+            try
+            {
+                string siteContent = string.Empty;
+                string url = "http://alertablu.cob.sc.gov.br/d/nivel-do-rio";
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+                request.AutomaticDecompression = DecompressionMethods.GZip;
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())  // Go query google
+                using (Stream responseStream = response.GetResponseStream())               // Load the response stream
+                using (StreamReader streamReader = new StreamReader(responseStream))       // Load the stream reader to read the response
+                {
+                    siteContent = streamReader.ReadToEnd(); // Read the entire response and store it in the siteContent variable
+                }
+                var document = new HtmlDocument();
+                document.LoadHtml(siteContent);
+                var nodes = document.DocumentNode.SelectNodes("//*[@id='river-level-table']/tbody/tr/td");
+                riverLevelHour = nodes[0].InnerText.Trim();
+                riverLevel = nodes[1].InnerText.Trim();
+            }
+            catch (Exception e)
+            {
+                Functions.LogException(e);
+            }
 
-        public class chatClient
-        {
-            public long ChatId { get; set; }
-            public string TextMessage { get; set; }
-            public clientStatus Status { get; set; }
-            public List<Message> MessageHistory { get; set; }
-            public TimeSpan TimeToSend { get; set; }
-            public DateTime LastSend { get; set; }
-            public bool Activated { get; set; }
-            public bool RiverLevel { get; set; }
-        }
-        public class Message
-        {
-            public string MessageText { get; set; }
-            public int MessageId { get; set; }
-            public DateTime dateTimeMessage { get; set; }
         }
         public enum clientStatus
         {

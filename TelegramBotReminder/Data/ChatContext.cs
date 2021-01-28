@@ -20,8 +20,30 @@ namespace TelegramBotReminder.Data
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
             //options.UseMySql($@"Data Source={Functions.ConfigurationRead("MySqlConnection")}");
-            options.UseMySql(@"server=192.168.99.100;port=3306;database=TelegramBot;user=root;password=123456");
+            options.UseMySql(Functions.GetConnectionStringFromSettings());
             base.OnConfiguring(options);
+        }
+        public Cliente getClient(int clientId)
+        {
+            using (var db = new BotContext())
+            {
+                var clienteExist = db.Conversas.AsNoTracking().FirstOrDefault(cli => cli.ClientId == clientId);
+                return clienteExist;
+            }
+        }
+        public bool updateClient(Cliente cliente)
+        {
+            using (var db = new BotContext())
+            {
+                var clienteExist = db.Conversas.FirstOrDefault(cli => cli.ClientId == cliente.ClientId);
+                if (clienteExist == null)
+                {
+                    return false;
+                }
+                db.Update(cliente);
+                db.SaveChanges();
+            }
+            return true;
         }
 
         public bool addCliente(Cliente conversa)
@@ -47,13 +69,5 @@ namespace TelegramBotReminder.Data
                 return false;
             }
         }
-        public List<Cliente> GetClientes()
-        {
-            using (var db = new BotContext())
-            {
-                return db.Conversas.AsNoTracking().ToList();
-            }
-        }
-
     }
 }

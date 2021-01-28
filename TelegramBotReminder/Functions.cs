@@ -9,7 +9,6 @@ namespace TelegramBotReminder
 {
     static class Functions
     {
-
         public static bool SaveToFile(string filePath, string textToSave)
         {
             try
@@ -68,6 +67,19 @@ namespace TelegramBotReminder
             var configuration = new ConfigurationBuilder().AddJsonFile($@"{AppDomain.CurrentDomain.BaseDirectory}appsettings.json", true, true).Build();
             var keyValue = configuration[key];
             return keyValue;
+        }
+        public static string GetConnectionStringFromSettings()
+        {
+            try
+            {
+                return new ConfigurationBuilder().AddJsonFile($@"{AppDomain.CurrentDomain.BaseDirectory}appsettings.json", true, true).Build().GetConnectionString("MySqlConnection");
+            }
+            catch (Exception e)
+            {
+                Functions.LogException(e);
+                return "";
+            }
+
         }
     }
 }
