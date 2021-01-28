@@ -1,8 +1,14 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using HtmlAgilityPack;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.IO;
+using System.Net;
 using System.Timers;
 using Telegram.Bot;
 using Telegram.Bot.Args;
+using TelegramBotReminder.Data;
 
 namespace TelegramBotReminder
 {
@@ -13,8 +19,8 @@ namespace TelegramBotReminder
         private static DateTime lastMessageTime;
         static void Main(string[] args)
         {
-            IConfiguration configuration = new ConfigurationBuilder().AddJsonFile($@"{AppDomain.CurrentDomain.BaseDirectory}appsettings.json", true, true).Build();
-            var token = configuration["TelegramBotToken"];
+            Functions.LogEvent("Aplicação iniciada");
+            var token = Functions.ConfigurationRead("TelegramBotToken");
             bot = new TelegramBotFunctions(token);
             SetTimer();
             Console.ReadLine();

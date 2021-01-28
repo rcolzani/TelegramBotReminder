@@ -1,3 +1,6 @@
 {
-  "telegramBotToken": "YourAPIKey"
+  "TelegramBotToken": "YourAPIKey",
+  "ConnectionStrings": {
+    "MySqlConnection": "Server=192.168.99.100;Port=3306;Database=TelegramBot;User=user;Password=password"
+  }
 }

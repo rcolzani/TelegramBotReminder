@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace TelegramBotReminder
 {
     static class Functions
     {
-        
-        public static bool SaveToFile (string filePath,string textToSave)
+
+        public static bool SaveToFile(string filePath, string textToSave)
         {
             try
             {
@@ -44,7 +45,7 @@ namespace TelegramBotReminder
         }
         public static void LogEvent(string LcTexto)
         {
-            Console.WriteLine($"{System.DateTime.UtcNow} - {LcTexto}");
+            Console.WriteLine($"{System.DateTime.Now} - {LcTexto}");
         }
         public static void LogException(Exception e)
         {
@@ -61,6 +62,12 @@ namespace TelegramBotReminder
                     sbReturn.Append(letter);
             }
             return sbReturn.ToString();
+        }
+        public static string ConfigurationRead(string key)
+        {
+            var configuration = new ConfigurationBuilder().AddJsonFile($@"{AppDomain.CurrentDomain.BaseDirectory}appsettings.json", true, true).Build();
+            var keyValue = configuration[key];
+            return keyValue;
         }
     }
 }
