@@ -9,7 +9,7 @@ using TelegramBotReminder.Data;
 namespace TelegramBotReminder.Migrations
 {
     [DbContext(typeof(BotContext))]
-    [Migration("20210127005404_init")]
+    [Migration("20210131200403_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -19,7 +19,7 @@ namespace TelegramBotReminder.Migrations
                 .HasAnnotation("ProductVersion", "3.1.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("TelegramBotReminder.Model.Cliente", b =>
+            modelBuilder.Entity("TelegramBotReminder.Models.Cliente", b =>
                 {
                     b.Property<int>("ClientId")
                         .ValueGeneratedOnAdd()
@@ -43,15 +43,15 @@ namespace TelegramBotReminder.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("TelegramChatId")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                    b.Property<long>("TelegramChatId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("TextMessage")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.HasKey("ClientId");
 
-                    b.ToTable("Conversas");
+                    b.ToTable("Clientes");
                 });
 
             modelBuilder.Entity("TelegramBotReminder.Models.Mensagem", b =>
@@ -60,15 +60,32 @@ namespace TelegramBotReminder.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("MessageDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("MessageSent")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("TextMessage")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
-                    b.HasKey("MensagemId");
+                    b.HasKey("MensagemId", "ClienteId");
+
+                    b.HasIndex("ClienteId");
 
                     b.ToTable("Mensagens");
+                });
+
+            modelBuilder.Entity("TelegramBotReminder.Models.Mensagem", b =>
+                {
+                    b.HasOne("TelegramBotReminder.Models.Cliente", "Cliente")
+                        .WithMany("MessageHistory")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

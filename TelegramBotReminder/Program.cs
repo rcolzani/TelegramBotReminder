@@ -9,7 +9,7 @@ using System.Timers;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using TelegramBotReminder.Data;
-using TelegramBotReminder.Model;
+using TelegramBotReminder.Models;
 
 namespace TelegramBotReminder
 {

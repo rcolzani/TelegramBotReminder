@@ -5,16 +5,16 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using TelegramBotReminder.Models;
 
-namespace TelegramBotReminder.Model
+namespace TelegramBotReminder.Models
 {
     public class Cliente
     {
         [Key]
-        public long ClientId { get; set; }
-        public string TelegramChatId { get; set; }
+        public int ClientId { get; set; }
+        public long TelegramChatId { get; set; }
         public string TextMessage { get; set; }
         public int Status { get; set; }
-        // public List<Message> MessageHistory { get; set; }
+        public IEnumerable<Mensagem> MessageHistory { get; set; }
         public TimeSpan RemindTimeToSend { get; set; }
         public DateTime LastSend { get; set; }
         public bool Activated { get; set; }

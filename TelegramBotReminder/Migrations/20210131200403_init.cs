@@ -9,12 +9,12 @@ namespace TelegramBotReminder.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Conversas",
+                name: "Clientes",
                 columns: table => new
                 {
                     ClientId = table.Column<int>(nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    TelegramChatId = table.Column<string>(nullable: true),
+                    TelegramChatId = table.Column<long>(nullable: false),
                     TextMessage = table.Column<string>(nullable: true),
                     Status = table.Column<int>(nullable: false),
                     RemindTimeToSend = table.Column<TimeSpan>(nullable: false),
@@ -25,7 +25,7 @@ namespace TelegramBotReminder.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Conversas", x => x.ClientId);
+                    table.PrimaryKey("PK_Clientes", x => x.ClientId);
                 });
 
             migrationBuilder.CreateTable(
@@ -34,22 +34,35 @@ namespace TelegramBotReminder.Migrations
                 {
                     MensagemId = table.Column<int>(nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ClienteId = table.Column<int>(nullable: false),
                     TextMessage = table.Column<string>(nullable: true),
-                    MessageDate = table.Column<DateTime>(nullable: false)
+                    MessageDate = table.Column<DateTime>(nullable: false),
+                    MessageSent = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Mensagens", x => x.MensagemId);
+                    table.PrimaryKey("PK_Mensagens", x => new { x.MensagemId, x.ClienteId });
+                    table.ForeignKey(
+                        name: "FK_Mensagens_Clientes_ClienteId",
+                        column: x => x.ClienteId,
+                        principalTable: "Clientes",
+                        principalColumn: "ClientId",
+                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Mensagens_ClienteId",
+                table: "Mensagens",
+                column: "ClienteId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Conversas");
+                name: "Mensagens");
 
             migrationBuilder.DropTable(
-                name: "Mensagens");
+                name: "Clientes");
         }
     }
 }

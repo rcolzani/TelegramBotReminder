@@ -12,7 +12,7 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBotReminder.Data;
-using TelegramBotReminder.Model;
+using TelegramBotReminder.Models;
 
 namespace TelegramBotReminder
 {
@@ -41,11 +41,13 @@ namespace TelegramBotReminder
         public async static void PrepareQuestionnaires(MessageEventArgs e)
         {
             long chatId = e.Message.Chat.Id;
-            string jsonString = JsonSerializer.Serialize(e);
-            Functions.LogEvent($"MessageEvent: {jsonString}");
+            //string jsonString = JsonSerializer.Serialize(e);
+            //Functions.LogEvent($"MessageEvent: {jsonString}");
             Functions.LogEvent($"Mensagem recebida {e.Message.Text} - do chat {chatId}");
-            bool isNewCliente = _context.addCliente(new Cliente { ClientId = chatId, TextMessage = "", RemindTimeToSend = new TimeSpan(08, 00, 00) }); ;
-            var clientChat = _context.Conversas.FirstOrDefault(c => c.ClientId == chatId);
+            bool isNewCliente = _context.addCliente(new Cliente { TelegramChatId = chatId, TextMessage = "", RemindTimeToSend = new TimeSpan(08, 00, 00) }); ;
+            var clientChat = _context.Clientes.FirstOrDefault(c => c.TelegramChatId == chatId);
+            _context.Mensagens.Add(new Mensagem { ClienteId = clientChat.ClientId, TextMessage = e.Message.Text, MessageDate = e.Message.Date, MessageSent = false });
+            _context.SaveChanges();
             string mensagem = Functions.RemoveAccents(e.Message.Text.ToLower());
             if (mensagem == "ola" || mensagem == "/start")
             {
@@ -108,12 +110,14 @@ namespace TelegramBotReminder
             {
                 string lembretes = "";
 
-                foreach (var chat in _context.Conversas.ToList())
+                foreach (var chat in _context.Clientes.ToList())
                 {
-                    if (chat.ClientId == chatId && chat.TextMessage != "")
+                    if (chat.TelegramChatId == chatId && chat.TextMessage != "")
                     {
-                        if (lembretes != "") { }
-                        lembretes += Environment.NewLine;
+                        if (lembretes != "")
+                        {
+                            lembretes += Environment.NewLine;
+                        }
                         lembretes += $"Lembrete {chat.TextMessage} às {chat.RemindTimeToSend}";
                     }
                 }
@@ -154,7 +158,7 @@ namespace TelegramBotReminder
             else if (mensagem == "sair")
             {
                 await sendMessage(e.Message.Chat.Id, $"Feito :D{Environment.NewLine}{Environment.NewLine}Para voltar a conversar comigo diga Olá");
-                _context.Remove(_context.Conversas.FirstOrDefault(c => c.ClientId == chatId));
+                _context.Remove(_context.Clientes.FirstOrDefault(c => c.TelegramChatId == chatId));
             }
             else if (clientChat.Status == (int)clientStatus.waitingForTextMessage)
             {
@@ -208,6 +212,8 @@ namespace TelegramBotReminder
                 // var responseString = client.GetStringAsync($"https://api.telegram.org/bot{_token}/sendMessage?chat_id={chatClient.ChatId}&text={chatClient.TextMessage}");
                 //Functions.LogEvent(responseString.Result.ToString());
                 var messageSent = await bot.SendTextMessageAsync(chatId, text, Telegram.Bot.Types.Enums.ParseMode.Markdown, false, false, 0, replyMarkup);
+                _context.Add(new Mensagem { ClienteId = _context.GetClienteId(chatId), TextMessage = text, MessageDate = DateTime.Now, MessageSent = true });
+                _context.SaveChanges();
                 string jsonString = JsonSerializer.Serialize(messageSent);
                 Functions.LogEvent($"messageSent: {jsonString}");
                 return true;
@@ -232,12 +238,12 @@ namespace TelegramBotReminder
                 }
                 lastRiverLevel = riverLevel + riverLevelHour;
 
-                foreach (var client in _context.Conversas.ToList())
+                foreach (var client in _context.Clientes.ToList())
                 {
                     //enviar nível do rio
                     if (enviarNivel && client.RiverLevel)
                     {
-                        await sendMessage(client.ClientId, $"O nível do rio está {riverLevel} às {riverLevelHour}");
+                        await sendMessage(client.TelegramChatId, $"O nível do rio está {riverLevel} às {riverLevelHour}");
                     }
                     //enviar lembretes criados
                     if (client.TextMessage != "" && client.Status == (int)clientStatus.complete) //apenas clientes com o cadastro de um lembrete completo
@@ -246,11 +252,11 @@ namespace TelegramBotReminder
                         {
                             if (client.LastSend == new DateTime())
                             {
-                                await sendMessage(client.ClientId, client.TextMessage);
+                                await sendMessage(client.TelegramChatId, client.TextMessage);
                             }
                             else if (client.LastSend.AddMinutes(-5) < DateTime.Now)
                             {
-                                await sendMessage(client.ClientId, client.TextMessage);
+                                await sendMessage(client.TelegramChatId, client.TextMessage);
                             }
                             client.LastSend = DateTime.Now;
                             _context.Update(client);
