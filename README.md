@@ -41,8 +41,8 @@ São muitas possibilidades e você só precisa de alguns segundos para cadastrar
 - [x] Consultar lembretes criados
 - [x] Teclado de botões personalizados para seleção de opções
 - [x] Captar os comandos e executar as ações
+- [x] Armazenar em banco de dados
 - [ ] Criar vários lembretes para um usuário
-- [ ] Armazenar em banco de dados
 
 ---
 
